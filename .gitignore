@@ -1,0 +1,11 @@
+.DS_Store
+
+# Ignore all log, api & result files 
+*.log 
+*.txt
+*.csv
+
+# Ignore folders
+output/
+old/
+keys/
