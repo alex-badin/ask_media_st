@@ -9,3 +9,6 @@
 output/
 old/
 keys/
+__pycache__
+.streamlit
+ask_media_env
