@@ -45,6 +45,7 @@ def main():
             with st.spinner("Обрабатываем. Обычно занимает 10-15 секунд..."):
                 try:
                     result = get_comparison(topic, dates)
+                    st.success(f"Результаты для темы: {topic} и дат: {dates[0]} - {dates[1]}")
                     st.markdown(result, unsafe_allow_html=True)
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
