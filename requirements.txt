@@ -1,0 +1,9 @@
+pandas
+datetime
+tqdm
+tenacity
+cohere
+pinecone
+openai
+streamlit
+icecream

@@ -1,8 +1,7 @@
 .DS_Store
 
 # Ignore all log, api & result files 
-*.log 
-*.txt
+*.log
 *.csv
 
 # Ignore folders
