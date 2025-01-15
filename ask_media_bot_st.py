@@ -29,6 +29,14 @@ def get_comparison(topic, dates):
 def main():
     st.title("Сравнение новостей по теме")
 
+    # Add expandable section with app description
+    with st.expander("ℹ️ О приложении"):
+        st.write("Вы можете сравнить как освещается то или иное событие в разных типах медиа. Введите событие и укажите, за какой период смотреть новости - алгоритм сделает саммари сравнения.")
+        # Add Airtable link using markdown for better presentation
+        st.markdown("""
+        📋 [Посмотреть список анализируемых медиа](https://airtable.com/appBwryEJHc5GxMGc/shrNlzdbO2qUzXoIT)
+        """)
+
     # Input fields for topic and date range
     topic = st.text_input("Введите тему:")
     start_date = st.date_input("С какой даты", datetime.now().date() - timedelta(days=2))
