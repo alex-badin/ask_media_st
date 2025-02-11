@@ -3,12 +3,12 @@
 #  - clean_text(text) - returns cleaned text
 #  - get_top_pine(request=None, request_emb=None, dates=None, sources=None, stance=None, model="text-embedding-ada-002", top_n=10)
 #       - returns two text objects: news4request, news_links
-#  - ask_media(request - question text, dates=None, sources=None, stance=None, model_name = "gpt-3.5-turbo", tokens_out = 512, full_reply = True, top_n = 10 news for summary)
+#  - ask_media(request - question text, dates=None, sources=None, stance=None, model_name = "gpt-4o-mini", tokens_out = 512, full_reply = True, top_n = 10 news for summary)
 #       - uses get_top_pine and ask_openai functions
 #       - returns one text object:
 #               if full_reply = True: request_params + "\n" + "Cost per request: " + str(round(reply_cost,3)) + ". Tokens used: " + str(n_tokens_used) + "\n\n" + reply_text + "\n\n" + news_links
 #               if full_reply = False: reply_text
-#  - compare_stances(request - question text, summaries_list - retrieved from ask_media, model_name = "gpt-3.5-turbo", tokens_out = 1500)
+#  - compare_stances(request - question text, summaries_list - retrieved from ask_media, model_name = "gpt-4o", tokens_out = 1500)
 #      - returns one text object: request_params + "\n\n" + reply_text (if full_reply = False: only reply_text)
 
 ### LIBRARIES
@@ -243,7 +243,7 @@ def cohere_rerank(request: str, sim_news: list, news_links: list, dates, stance,
 
 ## Ask OpenAI - returns openai summary based on question and sample of news
 @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(multiplier=1, max=10))
-def ask_openai(request: str, news4request: list, model_name = "gpt-3.5-turbo", tokens_out = 512, prompt_language = "ru"):
+def ask_openai(request: str, news4request: list, model_name = "gpt-4o-mini", tokens_out = 512, prompt_language = "ru"):
 
     system_content_en = f"You are given few short news texts in Russian. Based on these texts you need to answer the following question: {request}. \
         First, analyze if the texts provide an answer to the question. \
@@ -291,7 +291,7 @@ def ask_openai(request: str, news4request: list, model_name = "gpt-3.5-turbo", t
     return response
 
 # FUNCTION ask_media to combine all together (TO USE IN TG BOT REQUESTS): get top news, filter via cohere, ask openai for summary
-def ask_media(request: str, dates: ['%Y-%m-%d',['%Y-%m-%d']] = None, sources = None, stance: [] = None, model_name: str = "gpt-3.5-turbo", \
+def ask_media(request: str, dates: ['%Y-%m-%d',['%Y-%m-%d']] = None, sources = None, stance: [] = None, model_name: str = "gpt-4o-mini", \
               tokens_out: int = 512, full_reply: bool = True, top_n: int = top_n, prompt_language = "ru_fl"):
     # check request time
     request_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
