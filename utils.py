@@ -196,23 +196,6 @@ def get_top_pine(request: str=None, request_emb=None, dates: ['%Y-%m-%d',['%Y-%m
     return news4request, news_links
 
 
-def get_price_per_1K(model_name):
-    if model_name == "gpt-3.5-turbo": #4K (~10 news)
-        price_1K = 0.0005 # price per 1000 characters
-    if model_name == "gpt-3.5-turbo-1106": #16K (~40 news)
-        price_1K = 0.0015 # price per 1000 characters
-    elif model_name == "gpt-3.5-turbo-16k": #16K (~40 news)
-        price_1K = 0.003
-    elif model_name == "gpt-4": #8K (~20 news)
-        price_1K = 0.03
-    elif model_name == "gpt-4-32k": #32K (~80 news)
-        price_1K = 0.06
-    elif model_name == "gpt-4-1106-preview": #32K (~80 news)
-        price_1K = 0.01
-    elif model_name == "gpt-4o": #32K (~80 news)
-        price_1K = 0.005
-    return price_1K
-
 def cohere_rerank(request: str, sim_news: list, news_links: list, dates, stance, threshold = 0.8):
     # Cohere ReRank (Trial key is limited to 10 API calls / minute)
     reranked_docs = co.rerank(model="rerank-multilingual-v3.0", query=request, documents=sim_news)
@@ -325,13 +308,10 @@ def ask_media(request: str, dates: ['%Y-%m-%d',['%Y-%m-%d']] = None, sources = N
     if len(news4request) == 0:
         reply_text = 'Нет новостей по теме'   
         n_tokens_used = 0
-        reply_cost = 0
     else:
         reply = ask_openai(request, news4request, model_name = model_name, tokens_out = tokens_out, prompt_language = prompt_language)
         reply_text = reply.choices[0].message.content
         n_tokens_used = reply.usage.total_tokens
-        price_1K = get_price_per_1K(model_name)
-        reply_cost = n_tokens_used / 1000 * price_1K
 
     # write params & reply to file. If file doesn't exist - create it with headers
     # check reply time
@@ -340,18 +320,18 @@ def ask_media(request: str, dates: ['%Y-%m-%d',['%Y-%m-%d']] = None, sources = N
     if not os.path.isfile('openai_chatbot_digest_log.csv'):
         with open('openai_chatbot_digest_log.csv', 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['request', 'dates', 'sources', 'stance', 'reply_text', 'reply_cost', 'request_time', 'reply_time', 'model_name', 'n_tokens_used', 'news_links'])
+            writer.writerow(['request', 'dates', 'sources', 'stance', 'reply_text', 'request_time', 'reply_time', 'model_name', 'n_tokens_used', 'news_links'])
     with open('openai_chatbot_digest_log.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([request, dates, sources, stance, reply_text, reply_cost, request_time, reply_time, model_name, n_tokens_used, news_links])
+        writer.writerow([request, dates, sources, stance, reply_text, request_time, reply_time, model_name, n_tokens_used, news_links])
     
     # return reply for chatbot. If full_reply = False - return only reply_text
     if full_reply == False:
         ic(stance, reply_text, num_news, news_links)
         return reply_text, num_news, news_links
     else:
-        return request_params + "\n" + "Cost per request: " + str(round(reply_cost,3)) + ". Tokens used: " + str(n_tokens_used) + \
-            "N of filtered news: "+ str(num_news) + "\n\n" + reply_text + "\n\n" + str(news_links)
+        return request_params + "\n" + "Tokens used: " + str(n_tokens_used) + \
+            ". N of filtered news: "+ str(num_news) + "\n\n" + str(reply_text) + "\n\n" + str(news_links)
 
 # MAKE SUMMARIES for given topic and dates (iterate over stances). Returns 3 dictionaries: summary_dict, num_dict, links_dict.
 def make_summaries(topic, dates):
@@ -426,17 +406,18 @@ You task is to analyse what is similar and what is different in all these texts.
                     )
     reply_text = reply.choices[0].message.content
     n_tokens_used = reply.usage.total_tokens
-    price_1K = get_price_per_1K(model_name)
-    reply_cost = n_tokens_used / 1000 * price_1K
     reply_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     if not os.path.isfile('openai_chatbot.csv'):
         with open('openai_chatbot.csv', 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['request', 'dates', 'sources', 'stance', 'reply_text', 'reply_cost', 'request_time', 'reply_time', 'model_name', 'n_tokens_used', 'news_links'])
+            writer.writerow(['request', 'dates', 'sources', 'stance', 'reply_text', 'request_time', 'reply_time', 'model_name', 'n_tokens_used', 'news_links'])
     with open('openai_chatbot.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([request, dates, sources, 'all_summary', reply_text, reply_cost, request_time, reply_time, model_name, n_tokens_used, ""])
+        writer.writerow([request, dates, sources, 'all_summary', reply_text, request_time, reply_time, model_name, n_tokens_used, ""])
     if full_reply == False:
         return reply_text
-    return request_params + "\n\n" + reply_text
+    
+    # get params for long reply
+    request_params = f"Request: {request}; \nFilters: dates: {dates}; sources: {sources}; stance: {stance}"
+    return request_params + "\n\n" + str(reply_text)
