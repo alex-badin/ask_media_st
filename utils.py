@@ -215,7 +215,7 @@ def get_price_per_1K(model_name):
 
 def cohere_rerank(request: str, sim_news: list, news_links: list, dates, stance, threshold = 0.8):
     # Cohere ReRank (Trial key is limited to 10 API calls / minute)
-    reranked_docs = co.rerank(model="rerank-multilingual-v2.0", query=request, documents=sim_news)
+    reranked_docs = co.rerank(model="rerank-multilingual-v3.0", query=request, documents=sim_news)
 
     # create a dataframe with news and cohere results)
     df_reranked = pd.DataFrame({'news': sim_news, 'links': news_links})
